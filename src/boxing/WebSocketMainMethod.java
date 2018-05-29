@@ -6,6 +6,9 @@ import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+/**
+ * 程序入口
+ */
 public class WebSocketMainMethod {
 	private static int PORT = 2018;
 

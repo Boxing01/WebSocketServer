@@ -4,10 +4,14 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.logging.Logger;
 
+import org.apache.commons.logging.Log;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
+import org.java_websocket.handshake.HandshakeImpl1Server;
 import org.java_websocket.server.WebSocketServer;
 
 import boxing.data.Constants.MessageType;
@@ -15,7 +19,7 @@ import boxing.data.Constants.MessageType;
 import com.alibaba.fastjson.JSON;
 
 public class MWebSocketService extends WebSocketServer {
-	private Map<Integer, WebSocket> hashSet = new HashMap<Integer, WebSocket>();
+	private Map<Integer, WebSocket> hashMap = new HashMap<>();
 
 	public MWebSocketService(int port) throws UnknownHostException {
 		super(new InetSocketAddress(port));
@@ -33,7 +37,7 @@ public class MWebSocketService extends WebSocketServer {
 	@Override
 	public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
 		System.out.println("客户端连接成功" + webSocket.getResourceDescriptor() + "==="
-				+ clientHandshake.getResourceDescriptor());
+				+ clientHandshake.getResourceDescriptor() + webSocket.getClass());
 		String address = webSocket.getRemoteSocketAddress().getAddress().getHostAddress();
 		String message = String.format("(%s) <进入房间！>", address);
 		sendToAll(message);
@@ -46,8 +50,11 @@ public class MWebSocketService extends WebSocketServer {
 		String message = String.format("(%s) <退出房间！>", address);
 		sendToAll(message);
 
-		System.out.println(message);
+		webSocket.close();
+		int id = webSocket.getAttachment();
+		hashMap.remove(id);
 
+		System.out.println(message);
 	}
 
 	// 服务端接收到消息
@@ -57,14 +64,23 @@ public class MWebSocketService extends WebSocketServer {
 		String type = imMessage.getType();
 		if (MessageType.LOGIN.equals(type)) {
 			// 登录消息
-			hashSet.put(imMessage.getSenderId(), webSocket);
+			int senderId = imMessage.getSenderId();
+			hashMap.put(senderId, webSocket);
+			// 回复客户端登录消息
+			webSocket.send(s);
+			// 将id和WebSocket绑定
+			webSocket.setAttachment(senderId);
 		} else if (MessageType.PRIVATE.equals(type)) {
-			// 私聊消息
+			// 发送私聊消息到指定客户端
 			int receiverId = imMessage.getReceiverId();
-			WebSocket receiveSocket = hashSet.get(receiverId);
-			receiveSocket.send(s);
+			WebSocket receiveSocket = hashMap.get(receiverId);
+			if (receiveSocket != null) {
+				receiveSocket.send(s);
+			} else {
+				// 未在线
+			}
 		} else if (MessageType.GROUP.equals(type)) {
-			// 群聊消息
+			// TODO 群聊消息
 			InetSocketAddress localSocketAddress = webSocket.getLocalSocketAddress();
 			InetSocketAddress remoteSocketAddress = webSocket.getRemoteSocketAddress();
 
@@ -84,6 +100,8 @@ public class MWebSocketService extends WebSocketServer {
 	public void onError(WebSocket webSocket, Exception e) {
 		if (null != webSocket) {
 			webSocket.close(0);
+			int id = webSocket.getAttachment();
+			hashMap.remove(id);
 		}
 		e.printStackTrace();
 	}
