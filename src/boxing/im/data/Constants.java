@@ -1,4 +1,4 @@
-package boxing.data;
+package boxing.im.data;
 
 /**
  * @author Liuyuli

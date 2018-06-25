@@ -1,4 +1,4 @@
-package boxing;
+package boxing.im;
 
 import com.alibaba.fastjson.JSON;
 
@@ -12,7 +12,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import boxing.data.Constants.MessageType;
+import boxing.im.data.Constants.MessageType;
 
 public class MWebSocketService extends WebSocketServer {
 	private Map<Integer, WebSocket> hashMap = new HashMap<>();
