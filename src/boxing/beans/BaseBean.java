@@ -6,6 +6,11 @@ package boxing.beans;
  */
 
 public class BaseBean {
+    /**
+     * 200 正常
+     * 201 参数不全或不对
+     * 203 服务器报错
+     */
     private int code;
     private String message;
     private Object object;
@@ -15,7 +20,7 @@ public class BaseBean {
     }
 
     public void setCode(int code) {
-        this.code = code;
+    this.code = code;
     }
 
     public String getMessage() {

@@ -9,6 +9,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import boxing.beans.LoginBean;
+import boxing.utils.TextUtils;
+
 /**
  * @author Liuyuli
  * @date 2018/6/22.
@@ -54,27 +57,25 @@ public class DBHelper {
      * @param name
      * @param psd
      */
-    public static boolean login(String name, String psd) {
+    public static LoginBean login(String name, String psd) {
+        LoginBean loginBean = new LoginBean();
         String sql = "select id from t_user where name='" + name + "' " + " and psd='" + psd + "';";
         DBHelper dbHelper = new DBHelper(sql);
         try {
             ResultSet resultSet = dbHelper.pst.executeQuery();
             log.debug(resultSet);
             System.out.println(resultSet.toString());
-            String id = "";
+            int id = 0;
             while (resultSet.next()) {
-                id = resultSet.getString("id");
+                id = resultSet.getInt("id");
                 log.debug(id);
             }
-            if (id != null && !name.isEmpty()) {
-                return true;
-            }
+            loginBean.setUserId(id);
         } catch (SQLException e) {
             e.printStackTrace();
-            return false;
         } finally {
             dbHelper.close();
         }
-        return false;
+        return loginBean;
     }
 }
